@@ -326,6 +326,50 @@ class Neo4jImpactAnalyzer:
         
         return analysis_results
 
+    def clean_cypher_query(self, cypher_query: str) -> str:
+        """清理和验证Cypher查询"""
+        if not cypher_query:
+            return ""
+        
+        # 移除可能的标签和格式问题
+        query = cypher_query.strip()
+        
+        # 移除可能的markdown代码块标记
+        if query.startswith('```cypher'):
+            query = query[9:]
+        if query.startswith('```'):
+            query = query[3:]
+        if query.endswith('```'):
+            query = query[:-3]
+        
+        # 移除可能的XML标签
+        query = re.sub(r'<[^>]+>', '', query)
+        
+        # 移除可能的思考标签
+        query = re.sub(r'<think>.*?</think>', '', query, flags=re.DOTALL)
+        
+        # 确保查询以有效的Cypher关键字开头
+        valid_starters = [
+            'MATCH', 'OPTIONAL MATCH', 'CREATE', 'MERGE', 'DELETE', 
+            'DETACH DELETE', 'SET', 'REMOVE', 'RETURN', 'WITH', 'UNWIND',
+            'CALL', 'LOAD', 'START', 'STOP'
+        ]
+        
+        query_upper = query.upper().strip()
+        is_valid = any(query_upper.startswith(starter) for starter in valid_starters)
+        
+        if not is_valid:
+            # 如果查询无效，生成一个基本的查询
+            print(f"生成的查询无效，使用默认查询: {query[:100]}...")
+            return """
+            MATCH (n)
+            WHERE n.name IS NOT NULL
+            RETURN n
+            LIMIT 10
+            """.strip()
+        
+        return query.strip()
+
     def analyze_with_graphrag(self, query: str) -> Optional[Dict[str, Any]]:
         """使用GraphRAG进行单次分析"""
         try:
@@ -337,6 +381,16 @@ class Neo4jImpactAnalyzer:
             if hasattr(result, 'cypher_query') and result.cypher_query:
                 # 清理Cypher查询
                 cypher_query = self.clean_cypher_query(result.cypher_query)
+                
+                # 验证查询语法
+                if not self.validate_cypher_query(cypher_query):
+                    print(f"查询语法验证失败，使用默认查询")
+                    cypher_query = """
+                    MATCH (n)
+                    WHERE n.name IS NOT NULL
+                    RETURN n
+                    LIMIT 10
+                    """.strip()
                 
                 # 执行查询获取影响范围
                 impact_data = self.execute_impact_query(cypher_query)
@@ -354,6 +408,36 @@ class Neo4jImpactAnalyzer:
         except Exception as e:
             print(f"GraphRAG分析失败: {e}")
             return None
+
+    def validate_cypher_query(self, cypher_query: str) -> bool:
+        """验证Cypher查询语法"""
+        try:
+            # 基本语法检查
+            query_upper = cypher_query.upper().strip()
+            
+            # 检查是否包含基本的关键字
+            if not any(keyword in query_upper for keyword in ['MATCH', 'RETURN']):
+                return False
+            
+            # 检查括号匹配
+            if cypher_query.count('(') != cypher_query.count(')'):
+                return False
+            
+            # 检查引号匹配
+            if cypher_query.count("'") % 2 != 0:
+                return False
+            
+            # 尝试解析查询（简单验证）
+            with self.driver.session() as session:
+                # 使用EXPLAIN来验证查询语法，不实际执行
+                try:
+                    session.run("EXPLAIN " + cypher_query)
+                    return True
+                except Exception:
+                    return False
+                    
+        except Exception:
+            return False
 
     def execute_impact_query(self, cypher_query: str) -> Dict[str, Any]:
         """执行影响分析查询"""
@@ -416,6 +500,27 @@ class Neo4jImpactAnalyzer:
                         'query': result['cypher_query'],
                         'description': f"变量 {variable} 的完整影响链路分析"
                     })
+                else:
+                    # 备用方案：生成基本的变量影响查询
+                    fallback_query = f"""
+                    // 变量 {variable} 的完整影响链路分析
+                    MATCH (v:Variable {{name: '{variable}'}})
+                    OPTIONAL MATCH (v)-[r1:RELATES_TO]->(f:Function)
+                    OPTIONAL MATCH (f)-[r2:IMPLEMENTED_IN]->(s:Script)
+                    OPTIONAL MATCH (s)-[r3:RELATES_TO]->(v2:Variable)
+                    OPTIONAL MATCH (s)-[r4:RELATES_TO]->(f2:Function)
+                    OPTIONAL MATCH (f2)-[r5:IMPLEMENTED_IN]->(s2:Script)
+                    OPTIONAL MATCH (s2)-[r6:RELATES_TO]->(v3:Variable)
+                    OPTIONAL MATCH (s2)-[r7:RELATES_TO]->(f3:Function)
+                    RETURN v, f, s, v2, f2, s2, v3, f3, r1, r2, r3, r4, r5, r6, r7
+                    ORDER BY v.name, f.name, s.name
+                    """.strip()
+                    
+                    impact_queries['variable_impact_queries'].append({
+                        'variable': variable,
+                        'query': fallback_query,
+                        'description': f"变量 {variable} 的完整影响链路分析（备用查询）"
+                    })
             
             for function in changes.get('changed_functions', []):
                 print(f"为函数 {function} 生成GraphRAG影响查询...")
@@ -429,6 +534,27 @@ class Neo4jImpactAnalyzer:
                         'function': function,
                         'query': result['cypher_query'],
                         'description': f"函数 {function} 的完整影响链路分析"
+                    })
+                else:
+                    # 备用方案：生成基本的函数影响查询
+                    fallback_query = f"""
+                    // 函数 {function} 的完整影响链路分析
+                    MATCH (f:Function {{name: '{function}'}})
+                    OPTIONAL MATCH (f)-[r1:IMPLEMENTED_IN]->(s:Script)
+                    OPTIONAL MATCH (f)-[r2:RELATES_TO]->(v:Variable)
+                    OPTIONAL MATCH (s)-[r3:RELATES_TO]->(f2:Function)
+                    OPTIONAL MATCH (s)-[r4:RELATES_TO]->(v2:Variable)
+                    OPTIONAL MATCH (f2)-[r5:IMPLEMENTED_IN]->(s2:Script)
+                    OPTIONAL MATCH (s2)-[r6:RELATES_TO]->(f3:Function)
+                    OPTIONAL MATCH (s2)-[r7:RELATES_TO]->(v3:Variable)
+                    RETURN f, s, v, f2, v2, s2, f3, v3, r1, r2, r3, r4, r5, r6, r7
+                    ORDER BY f.name, s.name
+                    """.strip()
+                    
+                    impact_queries['function_impact_queries'].append({
+                        'function': function,
+                        'query': fallback_query,
+                        'description': f"函数 {function} 的完整影响链路分析（备用查询）"
                     })
             
             for file_path in changes.get('modified_files', []):
@@ -444,6 +570,29 @@ class Neo4jImpactAnalyzer:
                         'query': result['cypher_query'],
                         'description': f"文件 {file_path} 的完整影响链路分析"
                     })
+                else:
+                    # 备用方案：生成基本的脚本影响查询
+                    script_name = os.path.basename(file_path)
+                    fallback_query = f"""
+                    // 脚本 {script_name} 的完整影响链路分析
+                    MATCH (s:Script {{name: '{script_name}'}})
+                    OPTIONAL MATCH (s)-[r1:RELATES_TO]->(f:Function)
+                    OPTIONAL MATCH (s)-[r2:RELATES_TO]->(v:Variable)
+                    OPTIONAL MATCH (f)-[r3:IMPLEMENTED_IN]->(s2:Script)
+                    OPTIONAL MATCH (s2)-[r4:RELATES_TO]->(f2:Function)
+                    OPTIONAL MATCH (s2)-[r5:RELATES_TO]->(v2:Variable)
+                    OPTIONAL MATCH (f2)-[r6:IMPLEMENTED_IN]->(s3:Script)
+                    OPTIONAL MATCH (s3)-[r7:RELATES_TO]->(f3:Function)
+                    OPTIONAL MATCH (s3)-[r8:RELATES_TO]->(v3:Variable)
+                    RETURN s, f, v, s2, f2, v2, s3, f3, v3, r1, r2, r3, r4, r5, r6, r7, r8
+                    ORDER BY s.name, f.name
+                    """.strip()
+                    
+                    impact_queries['script_impact_queries'].append({
+                        'script': file_path,
+                        'query': fallback_query,
+                        'description': f"文件 {file_path} 的完整影响链路分析（备用查询）"
+                    })
             
             # 生成综合影响查询
             if changes.get('modified_files') or changes.get('changed_variables') or changes.get('changed_functions'):
@@ -456,6 +605,34 @@ class Neo4jImpactAnalyzer:
                     impact_queries['comprehensive_impact_queries'].append({
                         'query': result['cypher_query'],
                         'description': "所有变更的综合影响分析",
+                        'changes': changes
+                    })
+                else:
+                    # 备用方案：生成综合影响查询
+                    variables = changes.get('changed_variables', [])
+                    functions = changes.get('changed_functions', [])
+                    scripts = [os.path.basename(f) for f in changes.get('modified_files', [])]
+                    
+                    fallback_query = f"""
+                    // 所有变更的综合影响分析
+                    MATCH (n)
+                    WHERE (n:Variable AND n.name IN {variables})
+                       OR (n:Function AND n.name IN {functions})
+                       OR (n:Script AND n.name IN {scripts})
+                    OPTIONAL MATCH (n)-[r1:RELATES_TO]->(related1)
+                    OPTIONAL MATCH (n)-[r2:IMPLEMENTED_IN]->(related2)
+                    OPTIONAL MATCH (related1)-[r3:RELATES_TO]->(related3)
+                    OPTIONAL MATCH (related1)-[r4:IMPLEMENTED_IN]->(related4)
+                    OPTIONAL MATCH (related2)-[r5:RELATES_TO]->(related5)
+                    OPTIONAL MATCH (related2)-[r6:IMPLEMENTED_IN]->(related6)
+                    RETURN n, related1, related2, related3, related4, related5, related6,
+                           r1, r2, r3, r4, r5, r6
+                    ORDER BY labels(n), n.name
+                    """.strip()
+                    
+                    impact_queries['comprehensive_impact_queries'].append({
+                        'query': fallback_query,
+                        'description': "所有变更的综合影响分析（备用查询）",
                         'changes': changes
                     })
             
