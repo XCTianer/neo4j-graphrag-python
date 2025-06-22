@@ -1,0 +1,18 @@
+{
+  "total_nodes": 2435,
+  "total_relationships": 5652,
+  "nodes_by_label": {
+    "Chunk": 92,
+    "Document": 92,
+    "Function": 326,
+    "Script": 92,
+    "Variable": 1833
+  },
+  "relationships_by_type": {
+    "CALLS": 533,
+    "DEFINES": 1448,
+    "FROM_CHUNK": 2251,
+    "FROM_DOCUMENT": 92,
+    "USES": 1328
+  }
+}

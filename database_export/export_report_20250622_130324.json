@@ -1,0 +1,27 @@
+{
+  "export_timestamp": "20250622_130324",
+  "export_files": {
+    "nodes": "database_export/nodes_20250622_130324.json",
+    "relationships": "database_export/relationships_20250622_130324.json",
+    "statistics": "database_export/statistics_20250622_130324.json",
+    "cypher_queries": "database_export/cypher_queries_20250622_130324.cypher"
+  },
+  "summary": {
+    "total_nodes": 2435,
+    "total_relationships": 5652,
+    "nodes_by_label": {
+      "Chunk": 92,
+      "Document": 92,
+      "Function": 326,
+      "Script": 92,
+      "Variable": 1833
+    },
+    "relationships_by_type": {
+      "CALLS": 533,
+      "DEFINES": 1448,
+      "FROM_CHUNK": 2251,
+      "FROM_DOCUMENT": 92,
+      "USES": 1328
+    }
+  }
+}
