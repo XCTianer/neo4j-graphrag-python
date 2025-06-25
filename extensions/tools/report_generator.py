@@ -370,13 +370,16 @@ class ReportGenerator:
                 source_node_id = path_nodes[0].get('node_id')
                 target_node_id = path_nodes[-1].get('node_id')
                 
+                # 计算合理的路径长度上限（基于实际路径长度，但不超过20）
+                max_path_length = min(len(path_nodes) + 5, 20)
+                
                 content += f"""-- 1. 查询完整链路路径
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 RETURN path, length(path) as path_length;
 
 -- 2. 查询链路上的所有节点（按类型分组）
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
@@ -384,7 +387,7 @@ RETURN labels(node)[0] as node_type, node.name as node_name, node.file_path as f
 ORDER BY node_type, node_name;
 
 -- 3. 查询链路上的脚本组件
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
@@ -392,7 +395,7 @@ WHERE 'Script' IN labels(node)
 RETURN node.name as script_name, node.file_path as file_path, properties(node) as properties;
 
 -- 4. 查询链路上的函数组件
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
@@ -400,7 +403,7 @@ WHERE 'Function' IN labels(node)
 RETURN node.name as function_name, node.file_path as file_path, node.line_range as line_range;
 
 -- 5. 查询链路上的变量组件
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
@@ -408,12 +411,12 @@ WHERE 'Variable' IN labels(node)
 RETURN node.name as variable_name, node.file_path as file_path, node.line_range as line_range;
 
 -- 6. 查询链路上的所有关系
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 RETURN relationships(path) as path_relationships;
 
 -- 7. 查询链路关系详情
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH relationships(path) as path_rels
 UNWIND path_rels as rel
@@ -444,8 +447,11 @@ RETURN type(rel) as relationship_type, startNode(rel).name as source_name, endNo
                     source_node_id = path_nodes[0].get('node_id')
                     target_node_id = path_nodes[-1].get('node_id')
                     
+                    # 计算合理的路径长度上限（基于实际路径长度，但不超过20）
+                    max_path_length = min(len(path_nodes) + 5, 20)
+                    
                     content += f"""-- 查询链路路径
-MATCH path = shortestPath((source)-[*]->(target))
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 RETURN path, length(path) as path_length;
 

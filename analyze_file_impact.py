@@ -185,7 +185,7 @@ class FileImpactAnalyzer:
     def _get_path_nodes(self, session, source_id: str, target_id: str) -> List[NodeInfo]:
         """获取路径中的所有节点"""
         result = session.run("""
-            MATCH path = shortestPath((source)-[*]->(target))
+            MATCH path = shortestPath((source)-[*1..10]->(target))
             WHERE elementId(source) = $source_id AND elementId(target) = $target_id
             RETURN nodes(path) as path_nodes
         """, source_id=source_id, target_id=target_id)

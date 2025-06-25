@@ -269,13 +269,16 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                 source_node_id = path_nodes[0].get('node_id')
                 target_node_id = path_nodes[-1].get('node_id')
                 
+                # 计算合理的路径长度上限（基于实际路径长度，但不超过20）
+                max_path_length = min(len(path_nodes) + 5, 20)
+                
                 f.write(f"-- 1. 查询完整链路路径\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"RETURN path, length(path) as path_length;\n\n")
                 
                 f.write(f"-- 2. 查询链路上的所有节点（按类型分组）\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"WITH nodes(path) as path_nodes\n")
                 f.write(f"UNWIND path_nodes as node\n")
@@ -283,7 +286,7 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                 f.write(f"ORDER BY node_type, node_name;\n\n")
                 
                 f.write(f"-- 3. 查询链路上的脚本组件\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"WITH nodes(path) as path_nodes\n")
                 f.write(f"UNWIND path_nodes as node\n")
@@ -291,7 +294,7 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                 f.write(f"RETURN node.name as script_name, node.file_path as file_path, properties(node) as properties;\n\n")
                 
                 f.write(f"-- 4. 查询链路上的函数组件\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"WITH nodes(path) as path_nodes\n")
                 f.write(f"UNWIND path_nodes as node\n")
@@ -299,7 +302,7 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                 f.write(f"RETURN node.name as function_name, node.file_path as file_path, node.line_range as line_range;\n\n")
                 
                 f.write(f"-- 5. 查询链路上的变量组件\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"WITH nodes(path) as path_nodes\n")
                 f.write(f"UNWIND path_nodes as node\n")
@@ -307,12 +310,12 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                 f.write(f"RETURN node.name as variable_name, node.file_path as file_path, node.line_range as line_range;\n\n")
                 
                 f.write(f"-- 6. 查询链路上的所有关系\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"RETURN relationships(path) as path_relationships;\n\n")
                 
                 f.write(f"-- 7. 查询链路关系详情\n")
-                f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                 f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                 f.write(f"WITH relationships(path) as path_rels\n")
                 f.write(f"UNWIND path_rels as rel\n")
@@ -337,8 +340,11 @@ def generate_cypher_queries_for_chains(comprehensive_analysis, output_dir):
                     source_node_id = path_nodes[0].get('node_id')
                     target_node_id = path_nodes[-1].get('node_id')
                     
+                    # 计算合理的路径长度上限
+                    max_path_length = min(len(path_nodes) + 5, 20)
+                    
                     f.write(f"-- 查询链路路径\n")
-                    f.write(f"MATCH path = shortestPath((source)-[*]->(target))\n")
+                    f.write(f"MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))\n")
                     f.write(f"WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'\n")
                     f.write(f"RETURN path, length(path) as path_length;\n\n")
                 
