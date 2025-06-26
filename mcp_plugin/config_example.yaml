@@ -1,0 +1,92 @@
+# Code Change Impact Analysis MCP Plugin Configuration Example
+# Copy this file to config.yaml and modify as needed
+
+repository:
+  # Repository to analyze
+  url: "https://github.com/XCTianer/transformer-models"
+  
+  # Number of days to analyze (default: 7)
+  analysis_days: 7
+  
+  # Branch to analyze (default: main)
+  branch: "main"
+  
+  # Local repository path (optional, if not provided will clone from URL)
+  local_path: null
+
+neo4j:
+  # Neo4j database connection
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "your-password"
+  database: "neo4j"
+  
+  # Connection pool settings
+  max_connection_lifetime: 3600
+  max_connection_pool_size: 50
+
+ollama:
+  # Ollama model for analysis
+  model: "llama3.2"
+  base_url: "http://localhost:11434"
+  
+  # Model parameters
+  temperature: 0.1
+  max_tokens: 4096
+
+analysis:
+  # Output directory for reports
+  output_dir: "analysis_output"
+  
+  # Analysis limits
+  max_impact_chains: 100
+  chain_depth_limit: 10
+  
+  # Analysis options
+  include_deleted_files: true
+  include_binary_files: false
+  
+  # Language support
+  supported_languages:
+    - "python"
+    - "javascript"
+    - "typescript"
+    - "java"
+    - "cpp"
+    - "c"
+    - "go"
+    - "rust"
+    - "matlab"
+
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: "INFO"
+  
+  # Log file
+  file: "code_change_analysis.log"
+  
+  # Console output
+  console: true
+
+# Environment settings
+environment:
+  # Required conda environment (optional)
+  required_env: "graphrag"
+  
+  # Python path additions
+  python_paths: []
+
+# MCP specific settings
+mcp:
+  # Server name
+  name: "code-change-impact-analysis"
+  
+  # Server version
+  version: "1.0.0"
+  
+  # Enable detailed logging
+  debug: false
+  
+  # Timeout settings (seconds)
+  request_timeout: 300
+  analysis_timeout: 600 

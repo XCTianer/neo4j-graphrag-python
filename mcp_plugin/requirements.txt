@@ -1,0 +1,18 @@
+# MCP Plugin Dependencies
+# Core dependencies
+neo4j>=5.17.0
+pydantic>=2.6.3
+pyyaml>=6.0.2
+gitpython>=3.1.0
+
+# Optional dependencies for enhanced functionality
+ollama>=0.4.4
+sentence-transformers>=3.0.0
+numpy>=2.0.0
+scipy>=1.13.0
+
+# Development dependencies
+pytest>=8.0.2
+pytest-asyncio>=0.23.8
+black>=23.0.0
+ruff>=0.3.0 
