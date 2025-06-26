@@ -166,38 +166,47 @@ class CodeChangeAnalyzer:
         Returns:
             Commit analysis results
         """
-        commit_hash = commit['hash']
-        changes = github_integration.get_commit_changes(commit_hash)
+        logger.info(f"Analyzing commit: {commit['hash'][:8]} - {commit['message']}")
         
-        if not changes:
+        # Get commit changes
+        changes = github_integration.get_commit_changes(commit['hash'])
+        
+        # Filter out configuration files that should be ignored
+        filtered_changes = self._filter_config_files(changes)
+        
+        if not filtered_changes:
+            logger.info(f"No relevant file changes found in commit {commit['hash'][:8]}")
             return {
                 "commit": commit,
-                "changes": [],
-                "impact_analysis": {},
+                "changes": changes,
+                "file_analyses": [],
+                "impact_analysis": {
+                    "summary": {
+                        "risk_level": "LOW",
+                        "impact_scope": "CONFIG_ONLY",
+                        "total_files_changed": len(changes),
+                        "affected_functions": 0,
+                        "affected_variables": 0,
+                        "affected_scripts": 0
+                    },
+                    "affected_functions": [],
+                    "affected_variables": [],
+                    "affected_scripts": []
+                },
                 "queries": []
             }
         
-        # Analyze each changed file
+        # Analyze each file change
         file_analyses = []
-        for change in changes:
-            file_analysis = await self._analyze_file_change(
-                github_integration, 
-                commit, 
-                change
-            )
+        for change in filtered_changes:
+            file_analysis = await self._analyze_file_change(github_integration, commit, change)
             file_analyses.append(file_analysis)
         
         # Generate impact analysis
-        impact_analysis = await self._generate_impact_analysis(
-            file_analyses, 
-            commit
-        )
+        impact_analysis = await self._generate_impact_analysis(file_analyses, commit)
         
-        # Generate Neo4j queries
-        queries = await self._generate_queries_for_commit(
-            file_analyses, 
-            commit
-        )
+        # Generate queries for this commit
+        queries = await self._generate_queries_for_commit(file_analyses, commit)
         
         return {
             "commit": commit,
@@ -206,6 +215,105 @@ class CodeChangeAnalyzer:
             "impact_analysis": impact_analysis,
             "queries": queries
         }
+    
+    def _filter_config_files(self, changes: List[Dict]) -> List[Dict]:
+        """
+        Filter out configuration files that should be ignored in code analysis.
+        
+        Args:
+            changes: List of file changes
+            
+        Returns:
+            Filtered list of changes excluding config files
+        """
+        # Files to ignore in code analysis
+        ignored_files = {
+            '.gitignore',
+            '.gitattributes',
+            '.gitmodules',
+            '.editorconfig',
+            '.eslintrc',
+            '.prettierrc',
+            '.babelrc',
+            'tsconfig.json',
+            'package.json',
+            'package-lock.json',
+            'yarn.lock',
+            'requirements.txt',
+            'setup.py',
+            'pyproject.toml',
+            'Cargo.toml',
+            'go.mod',
+            'go.sum',
+            'Gemfile',
+            'Gemfile.lock',
+            'composer.json',
+            'composer.lock',
+            'Dockerfile',
+            'docker-compose.yml',
+            '.dockerignore',
+            'Makefile',
+            'CMakeLists.txt',
+            'README.md',
+            'README.txt',
+            'LICENSE',
+            'LICENSE.txt',
+            'CHANGELOG.md',
+            'SECURITY.md',
+            'CONTRIBUTING.md',
+            '.github/workflows/',
+            '.github/ISSUE_TEMPLATE/',
+            '.github/PULL_REQUEST_TEMPLATE.md',
+            'docs/',
+            'documentation/',
+            '*.md',
+            '*.txt',
+            '*.yml',
+            '*.yaml',
+            '*.json',
+            '*.toml',
+            '*.lock',
+            '*.log',
+            '*.tmp',
+            '*.temp'
+        }
+        
+        filtered_changes = []
+        ignored_count = 0
+        
+        for change in changes:
+            file_path = change.get('file_path', '')
+            filename = file_path.split('/')[-1] if '/' in file_path else file_path
+            
+            # Check if file should be ignored
+            should_ignore = False
+            
+            # Check exact filename match
+            if filename in ignored_files:
+                should_ignore = True
+            
+            # Check file extensions
+            for pattern in ignored_files:
+                if pattern.startswith('*.') and filename.endswith(pattern[1:]):
+                    should_ignore = True
+                    break
+            
+            # Check directory patterns
+            for pattern in ignored_files:
+                if pattern.endswith('/') and file_path.startswith(pattern):
+                    should_ignore = True
+                    break
+            
+            if should_ignore:
+                ignored_count += 1
+                logger.info(f"Ignoring config file: {file_path}")
+            else:
+                filtered_changes.append(change)
+        
+        if ignored_count > 0:
+            logger.info(f"Filtered out {ignored_count} configuration files from analysis")
+        
+        return filtered_changes
     
     async def _analyze_file_change(
         self, 
@@ -309,20 +417,20 @@ class CodeChangeAnalyzer:
             logger.info(f"Found {len(entities)} entities using normalized path match for {normalized_path}")
             return entities
         
-        # Strategy 3: Try different path variations (with priority)
-        path_variations = self._generate_path_variations(file_path)
+        # Strategy 3: Enhanced path variations with better matching
+        path_variations = self._generate_enhanced_path_variations(file_path)
         for variation in path_variations:
             entities = await self._query_entities_by_exact_path(variation)
             if entities:
-                logger.info(f"Found {len(entities)} entities using path variation: {variation}")
+                logger.info(f"Found {len(entities)} entities using enhanced path variation: {variation}")
                 return entities
         
-        # Strategy 4: Exact filename match (lower priority, only if no path match found)
-        entities = await self._query_entities_by_filename(filename)
+        # Strategy 4: Smart filename matching with context awareness
+        entities = await self._query_entities_by_smart_filename(filename, file_path)
         if entities:
-            logger.info(f"Found {len(entities)} entities using exact filename match for {filename}")
-            # Filter to prioritize the most relevant matches
-            filtered_entities = self._filter_entities_by_relevance(entities, file_path)
+            logger.info(f"Found {len(entities)} entities using smart filename match for {filename}")
+            # Apply enhanced filtering
+            filtered_entities = self._filter_entities_by_enhanced_relevance(entities, file_path)
             if filtered_entities:
                 logger.info(f"Filtered to {len(filtered_entities)} most relevant entities")
                 return filtered_entities
@@ -334,19 +442,18 @@ class CodeChangeAnalyzer:
             entities = await self._query_entities_by_filename(base_name)
             if entities:
                 logger.info(f"Found {len(entities)} entities using base name match for {base_name}")
-                filtered_entities = self._filter_entities_by_relevance(entities, file_path)
+                filtered_entities = self._filter_entities_by_enhanced_relevance(entities, file_path)
                 if filtered_entities:
                     logger.info(f"Filtered to {len(filtered_entities)} most relevant entities")
                     return filtered_entities
                 return entities
         
-        # Strategy 6: Try searching by content similarity (if filename contains key terms)
-        if 'gpt2' in filename.lower() or 'bert' in filename.lower():
-            # Search for files with similar names
-            entities = await self._query_entities_by_keyword(filename)
+        # Strategy 6: Context-aware keyword search
+        if self._should_use_keyword_search(file_path):
+            entities = await self._query_entities_by_context_aware_keyword(file_path)
             if entities:
-                logger.info(f"Found {len(entities)} entities using keyword search for {filename}")
-                filtered_entities = self._filter_entities_by_relevance(entities, file_path)
+                logger.info(f"Found {len(entities)} entities using context-aware keyword search")
+                filtered_entities = self._filter_entities_by_enhanced_relevance(entities, file_path)
                 if filtered_entities:
                     logger.info(f"Filtered to {len(filtered_entities)} most relevant entities")
                     return filtered_entities
@@ -385,71 +492,9 @@ class CodeChangeAnalyzer:
         
         return '/'.join(path_parts[start_index:])
     
-    def _filter_entities_by_relevance(self, entities: List[Dict], target_file_path: str) -> List[Dict]:
+    def _generate_enhanced_path_variations(self, file_path: str) -> List[str]:
         """
-        Filter entities by relevance to the target file path.
-        
-        Args:
-            entities: List of entities to filter
-            target_file_path: Target file path
-            
-        Returns:
-            Filtered list of entities
-        """
-        if not entities:
-            return []
-        
-        # Extract key components from target path
-        target_parts = target_file_path.lower().split('/')
-        target_keywords = set()
-        
-        # Extract meaningful keywords
-        for part in target_parts:
-            if part not in ['', 'nj', 'transformer-models', 'matlab', 'internal']:
-                target_keywords.add(part)
-        
-        # Score entities by relevance
-        scored_entities = []
-        for entity in entities:
-            entity_path = entity.get('file_path', '').lower()
-            entity_parts = entity_path.split('/')
-            
-            # Calculate relevance score
-            score = 0
-            
-            # Exact path match gets highest score
-            if entity_path in target_file_path.lower() or target_file_path.lower() in entity_path:
-                score += 100
-            
-            # Keyword matching
-            for keyword in target_keywords:
-                if keyword in entity_path:
-                    score += 10
-            
-            # Path component matching
-            common_parts = set(target_parts) & set(entity_parts)
-            score += len(common_parts) * 5
-            
-            # Prefer shorter paths (more specific)
-            score -= len(entity_parts) * 2
-            
-            scored_entities.append((entity, score))
-        
-        # Sort by score and return top matches
-        scored_entities.sort(key=lambda x: x[1], reverse=True)
-        
-        # Return entities with score > 0, or top 5 if all scores are 0
-        relevant_entities = [entity for entity, score in scored_entities if score > 0]
-        
-        if not relevant_entities and scored_entities:
-            # If no relevant matches, return top 5
-            relevant_entities = [entity for entity, score in scored_entities[:5]]
-        
-        return relevant_entities
-    
-    def _generate_path_variations(self, file_path: str) -> List[str]:
-        """
-        Generate different path variations to try matching.
+        Generate enhanced path variations with better matching logic.
         
         Args:
             file_path: Original file path
@@ -460,10 +505,10 @@ class CodeChangeAnalyzer:
         variations = []
         path_parts = file_path.split('/')
         
-        # Remove common prefixes
-        prefixes_to_remove = ['nj', 'transformer-models', 'matlab']
+        # Remove common prefixes with more comprehensive list
+        prefixes_to_remove = ['nj', 'transformer-models', 'matlab', 'tests', 'matlab_test', 'test_data']
         
-        # Try removing prefixes
+        # Strategy 1: Remove prefixes one by one
         for i, part in enumerate(path_parts):
             if part in prefixes_to_remove:
                 # Create variation without this prefix
@@ -471,14 +516,38 @@ class CodeChangeAnalyzer:
                 if variation:
                     variations.append(variation)
         
-        # Try with just the last few parts
+        # Strategy 2: Remove multiple prefixes at once
+        start_index = 0
+        for i, part in enumerate(path_parts):
+            if part not in prefixes_to_remove:
+                start_index = i
+                break
+        if start_index > 0:
+            variations.append('/'.join(path_parts[start_index:]))
+        
+        # Strategy 3: Keep only the most specific parts (last 3-4 parts)
+        if len(path_parts) >= 4:
+            variations.append('/'.join(path_parts[-4:]))  # Last 4 parts
         if len(path_parts) >= 3:
             variations.append('/'.join(path_parts[-3:]))  # Last 3 parts
         if len(path_parts) >= 2:
             variations.append('/'.join(path_parts[-2:]))  # Last 2 parts
         
-        # Try with just the filename
-        variations.append(path_parts[-1])
+        # Strategy 4: Special handling for model files
+        if 'model.m' in file_path:
+            # For model files, try to match the specific model type
+            for part in path_parts:
+                if part in ['gpt2', 'bert', 'finbert', 'transformer']:
+                    variations.append(f"+{part}/model.m")
+                    variations.append(f"{part}/model.m")
+                    variations.append(f"model.m")
+        
+        # Strategy 5: Handle internal directories
+        if 'internal' in path_parts:
+            internal_index = path_parts.index('internal')
+            if internal_index + 1 < len(path_parts):
+                # Include the file after internal
+                variations.append('/'.join(path_parts[internal_index:]))
         
         # Remove duplicates while preserving order
         seen = set()
@@ -593,41 +662,207 @@ class CodeChangeAnalyzer:
                 entities.append(dict(record))
                 
         except Exception as e:
-            logger.error(f"Error querying entities for {filename}: {e}")
+            logger.error(f"Error querying entities for filename {filename}: {e}")
         
         return entities
     
     async def _query_entities_by_keyword(self, keyword: str) -> List[Dict]:
-        """Query entities by keyword in filename."""
-        # Extract key terms from filename
-        key_terms = []
-        if 'gpt2' in keyword.lower():
-            key_terms.append('gpt2')
-        if 'bert' in keyword.lower():
-            key_terms.append('bert')
-        if 'support' in keyword.lower():
-            key_terms.append('support')
-        
-        if not key_terms:
-            return []
-        
-        # Query for files containing these terms
+        """Query entities by keyword search."""
         query = """
         MATCH (n)
-        WHERE n.file_path IS NOT NULL
-        AND any(term IN $key_terms WHERE toLower(n.file_path) CONTAINS toLower(term))
+        WHERE n.file_path CONTAINS $keyword
         RETURN n.name as name, n.file_path as file_path, labels(n)[0] as type,
                n.line_range as line_range, n.id as id
-        LIMIT 10
+        ORDER BY n.file_path
+        LIMIT 20
         """
         
         entities = []
+        
         try:
-            result = self.driver.execute_query(query, key_terms=key_terms)
+            result = self.driver.execute_query(query, keyword=keyword)
             for record in result.records:
                 entities.append(dict(record))
         except Exception as e:
             logger.error(f"Error querying entities by keyword {keyword}: {e}")
+        
+        return entities
+    
+    async def _query_entities_by_smart_filename(self, filename: str, original_file_path: str) -> List[Dict]:
+        """Query entities by filename with smart context awareness."""
+        # Extract context from original file path
+        path_parts = original_file_path.lower().split('/')
+        context_keywords = []
+        
+        # Extract meaningful context keywords
+        for part in path_parts:
+            if part not in ['', 'nj', 'transformer-models', 'matlab', 'tests', 'matlab_test', 'test_data']:
+                context_keywords.append(part)
+        
+        # Build a more specific query based on context
+        if context_keywords:
+            # Try to match files that contain both the filename and context keywords
+            context_conditions = []
+            for keyword in context_keywords:
+                context_conditions.append(f"n.file_path CONTAINS '{keyword}'")
+            
+            context_condition = " OR ".join(context_conditions)
+            
+            query = f"""
+            MATCH (n)
+            WHERE (n.file_path = $filename 
+               OR n.file_path ENDS WITH $filename
+               OR n.file_path ENDS WITH '/' + $filename)
+            AND ({context_condition})
+            RETURN n.name as name, n.file_path as file_path, labels(n)[0] as type,
+                   n.line_range as line_range, n.id as id
+            ORDER BY n.file_path
+            """
+        else:
+            # Fallback to basic filename matching
+            query = """
+            MATCH (n)
+            WHERE n.file_path = $filename 
+               OR n.file_path ENDS WITH $filename
+               OR n.file_path ENDS WITH '/' + $filename
+            RETURN n.name as name, n.file_path as file_path, labels(n)[0] as type,
+                   n.line_range as line_range, n.id as id
+            ORDER BY n.file_path
+            """
+        
+        entities = []
+        
+        try:
+            result = self.driver.execute_query(query, filename=filename)
+            for record in result.records:
+                entities.append(dict(record))
+        except Exception as e:
+            logger.error(f"Error querying entities by smart filename {filename}: {e}")
+        
+        return entities
+    
+    def _filter_entities_by_enhanced_relevance(self, entities: List[Dict], target_file_path: str) -> List[Dict]:
+        """
+        Enhanced filtering of entities by relevance to the target file path.
+        
+        Args:
+            entities: List of entities to filter
+            target_file_path: Target file path
+            
+        Returns:
+            Filtered list of entities
+        """
+        if not entities:
+            return []
+        
+        # Extract key components from target path
+        target_parts = target_file_path.lower().split('/')
+        target_keywords = set()
+        
+        # Extract meaningful keywords with better filtering
+        for part in target_parts:
+            if part not in ['', 'nj', 'transformer-models', 'matlab', 'tests', 'matlab_test', 'test_data', 'internal']:
+                target_keywords.add(part)
+        
+        # Score entities by enhanced relevance
+        scored_entities = []
+        for entity in entities:
+            entity_path = entity.get('file_path', '').lower()
+            entity_parts = entity_path.split('/')
+            
+            # Calculate enhanced relevance score
+            score = 0
+            
+            # Exact path match gets highest score
+            if entity_path in target_file_path.lower() or target_file_path.lower() in entity_path:
+                score += 200
+            
+            # Path component matching with higher weight
+            common_parts = set(target_parts) & set(entity_parts)
+            score += len(common_parts) * 15
+            
+            # Keyword matching with context awareness
+            for keyword in target_keywords:
+                if keyword in entity_path:
+                    score += 20
+                    # Bonus for exact keyword match
+                    if f"/{keyword}/" in entity_path or entity_path.endswith(f"/{keyword}"):
+                        score += 10
+            
+            # Prefer files that are more likely to be the actual source
+            # Penalize test files if we're looking for source files
+            if 'test' in entity_path and 'test' not in target_file_path.lower():
+                score -= 50
+            
+            # Bonus for files that match the expected structure
+            if 'gpt2' in target_file_path.lower() and 'gpt2' in entity_path:
+                score += 30
+            if 'bert' in target_file_path.lower() and 'bert' in entity_path:
+                score += 30
+            if 'finbert' in target_file_path.lower() and 'finbert' in entity_path:
+                score += 30
+            
+            # Prefer shorter paths (more specific)
+            score -= len(entity_parts) * 3
+            
+            scored_entities.append((entity, score))
+        
+        # Sort by score and return top matches
+        scored_entities.sort(key=lambda x: x[1], reverse=True)
+        
+        # Return entities with score > 10, or top 3 if all scores are low
+        relevant_entities = [entity for entity, score in scored_entities if score > 10]
+        
+        if not relevant_entities and scored_entities:
+            # If no relevant matches, return top 3
+            relevant_entities = [entity for entity, score in scored_entities[:3]]
+        
+        return relevant_entities
+    
+    def _should_use_keyword_search(self, file_path: str) -> bool:
+        """Determine if keyword search should be used based on file path."""
+        path_lower = file_path.lower()
+        keywords = ['gpt2', 'bert', 'transformer', 'model', 'layer', 'attention']
+        return any(keyword in path_lower for keyword in keywords)
+    
+    async def _query_entities_by_context_aware_keyword(self, file_path: str) -> List[Dict]:
+        """Query entities using context-aware keyword search."""
+        path_parts = file_path.lower().split('/')
+        keywords = []
+        
+        # Extract relevant keywords
+        for part in path_parts:
+            if part in ['gpt2', 'bert', 'finbert', 'transformer', 'model', 'layer', 'attention']:
+                keywords.append(part)
+        
+        if not keywords:
+            return []
+        
+        # Build query with multiple keywords
+        keyword_conditions = []
+        for keyword in keywords:
+            keyword_conditions.append(f"n.file_path CONTAINS '{keyword}'")
+        
+        keyword_condition = " OR ".join(keyword_conditions)
+        
+        query = f"""
+        MATCH (n)
+        WHERE ({keyword_condition})
+        AND n.file_path IS NOT NULL
+        RETURN n.name as name, n.file_path as file_path, labels(n)[0] as type,
+               n.line_range as line_range, n.id as id
+        ORDER BY n.file_path
+        LIMIT 20
+        """
+        
+        entities = []
+        
+        try:
+            result = self.driver.execute_query(query)
+            for record in result.records:
+                entities.append(dict(record))
+        except Exception as e:
+            logger.error(f"Error querying entities by context-aware keyword: {e}")
         
         return entities
     
@@ -839,7 +1074,7 @@ class CodeChangeAnalyzer:
             entities = analysis.get('entities', [])
             
             # Filter entities by relevance to the actual changed file
-            relevant_entities = self._filter_entities_by_relevance(entities, file_path)
+            relevant_entities = self._filter_entities_by_enhanced_relevance(entities, file_path)
             
             for entity in relevant_entities:
                 # Create unique identifier to avoid duplicates
@@ -1137,6 +1372,70 @@ class CodeChangeAnalyzer:
             all_affected_scripts
         )
         
+        # 为每个提交分配相关的依赖链路
+        commit_details_with_chains = []
+        for commit_detail in analysis_results:
+            # 获取该提交影响的实体
+            impact = commit_detail.get('impact_analysis', {})
+            commit_functions = impact.get('affected_functions', [])
+            commit_variables = impact.get('affected_variables', [])
+            commit_scripts = impact.get('affected_scripts', [])
+            
+            # 找到与该提交相关的依赖链路
+            related_chains = []
+            for chain in dependency_chains:
+                path_nodes = chain.get('path_nodes', [])
+                
+                # 检查链路是否包含该提交影响的实体
+                for node in path_nodes:
+                    node_name = node.get('name', '')
+                    node_file_path = node.get('file_path', '')
+                    
+                    # 检查是否匹配该提交影响的函数
+                    for func in commit_functions:
+                        if (func.get('name') == node_name and 
+                            func.get('file_path') == node_file_path):
+                            related_chains.append(chain)
+                            break
+                    
+                    # 检查是否匹配该提交影响的变量
+                    for var in commit_variables:
+                        if (var.get('name') == node_name and 
+                            var.get('file_path') == node_file_path):
+                            related_chains.append(chain)
+                            break
+                    
+                    # 检查是否匹配该提交影响的脚本
+                    for script in commit_scripts:
+                        if (script.get('name') == node_name and 
+                            script.get('file_path') == node_file_path):
+                            related_chains.append(chain)
+                            break
+                    
+                    if chain in related_chains:
+                        break
+            
+            # 去重并排序
+            unique_related_chains = []
+            seen_chain_ids = set()
+            for chain in related_chains:
+                if chain.get('chain_id') not in seen_chain_ids:
+                    unique_related_chains.append(chain)
+                    seen_chain_ids.add(chain.get('chain_id'))
+            
+            # 按严重程度排序
+            sorted_related_chains = sorted(
+                unique_related_chains, 
+                key=lambda x: self._get_severity_score(x), 
+                reverse=True
+            )
+            
+            # 创建包含依赖链路的提交详情
+            commit_detail_with_chains = commit_detail.copy()
+            commit_detail_with_chains['dependency_chains'] = sorted_related_chains
+            
+            commit_details_with_chains.append(commit_detail_with_chains)
+        
         return {
             "repository_info": repo_info,
             "analysis_period": {
@@ -1150,7 +1449,7 @@ class CodeChangeAnalyzer:
                 "total_affected_scripts": len(all_affected_scripts)
             },
             "dependency_chains": dependency_chains,
-            "commit_details": analysis_results
+            "commit_details": commit_details_with_chains
         }
     
     async def _analyze_dependency_chains(

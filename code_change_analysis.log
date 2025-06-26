@@ -3023,3 +3023,315 @@ TypeError: argument of type 'NoneType' is not iterable
 2025-06-25 13:56:27,115 - main_analyzer - INFO - 📝 Affected variables: 3
 2025-06-25 13:56:27,115 - main_analyzer - INFO - 📜 Affected scripts: 0
 2025-06-25 13:56:27,115 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 14:15:05,655 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 14:15:05,656 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 14:15:05,656 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 14:15:05,689 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 14:15:05,689 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/XCTianer/transformer-models.git
+2025-06-25 14:15:05,689 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 14:15:05,689 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 14:15:06,375 - integrations.github_integration - INFO - Found latest commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 14:15:06,375 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: ce31873a
+2025-06-25 14:15:06,375 - pipelines.code_change_analyzer - INFO - Analyzing commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 14:15:09,753 - pipelines.code_change_analyzer - INFO - Found 3 entities using path variation: getSupportFilePath.m
+2025-06-25 14:15:09,766 - pipelines.code_change_analyzer - INFO - Found 3 entities and 6 relationships for nj/transformer-models/+gpt2/+internal/getSupportFilePath.m
+2025-06-25 14:15:10,321 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: directory in getSupportFilePath.m
+2025-06-25 14:15:10,348 - pipelines.code_change_analyzer - INFO - Found 6 dependency chains for directory
+2025-06-25 14:15:10,348 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: destination in getSupportFilePath.m
+2025-06-25 14:15:10,387 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for destination
+2025-06-25 14:15:10,387 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: source in getSupportFilePath.m
+2025-06-25 14:15:10,407 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for source
+2025-06-25 14:15:10,407 - pipelines.code_change_analyzer - INFO - Total dependency chains found: 15
+2025-06-25 14:15:10,407 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 14:15:10,407 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 14:15:10,408 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 14:15:10,408 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 14:15:10,408 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 14:15:10,408 - main_analyzer - INFO - 📝 Affected variables: 3
+2025-06-25 14:15:10,409 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 14:15:10,409 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 14:18:57,071 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 14:18:57,071 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 14:18:57,072 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 14:18:57,109 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 14:18:57,110 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/XCTianer/transformer-models.git
+2025-06-25 14:18:57,110 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 14:18:57,110 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 14:18:57,654 - integrations.github_integration - INFO - Found latest commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 14:18:57,654 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: ce31873a
+2025-06-25 14:18:57,654 - pipelines.code_change_analyzer - INFO - Analyzing commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 14:18:58,359 - pipelines.code_change_analyzer - INFO - Found 3 entities using path variation: getSupportFilePath.m
+2025-06-25 14:18:58,381 - pipelines.code_change_analyzer - INFO - Found 3 entities and 6 relationships for nj/transformer-models/+gpt2/+internal/getSupportFilePath.m
+2025-06-25 14:18:58,739 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: directory in getSupportFilePath.m
+2025-06-25 14:18:58,765 - pipelines.code_change_analyzer - INFO - Found 6 dependency chains for directory
+2025-06-25 14:18:58,765 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: destination in getSupportFilePath.m
+2025-06-25 14:18:58,795 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for destination
+2025-06-25 14:18:58,795 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: source in getSupportFilePath.m
+2025-06-25 14:18:58,816 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for source
+2025-06-25 14:18:58,816 - pipelines.code_change_analyzer - INFO - Total dependency chains found: 15
+2025-06-25 14:18:58,817 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 14:18:58,817 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 14:18:58,818 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 14:18:58,818 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 14:18:58,818 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📝 Affected variables: 3
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 14:18:58,818 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 15:09:03,729 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 15:09:03,729 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 15:09:03,729 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 15:09:03,787 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 15:09:03,787 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/neo4j/neo4j-python-driver
+2025-06-25 15:09:03,787 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 15:09:03,788 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 15:09:04,361 - integrations.github_integration - INFO - Found latest commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:09:04,361 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: a346cad1
+2025-06-25 15:09:04,361 - pipelines.code_change_analyzer - INFO - Analyzing commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:09:05,416 - pipelines.code_change_analyzer - INFO - No entities found for file testkitbackend/test_config.json (tried filename: test_config.json)
+2025-06-25 15:09:05,416 - pipelines.code_change_analyzer - INFO - Found 0 entities and 0 relationships for testkitbackend/test_config.json
+2025-06-25 15:09:05,949 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:09:05,949 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:09:05,953 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:09:05,953 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 15:09:05,953 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 15:09:05,953 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 15:09:05,954 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 15:09:05,954 - main_analyzer - INFO - 📝 Affected variables: 0
+2025-06-25 15:09:05,954 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 15:09:05,954 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 15:09:21,758 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 15:09:21,759 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 15:09:21,759 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 15:09:21,794 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 15:09:21,795 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/neo4j/neo4j-python-driver
+2025-06-25 15:09:21,795 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 15:09:21,795 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 15:09:22,138 - integrations.github_integration - INFO - Found latest commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:09:22,138 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: a346cad1
+2025-06-25 15:09:22,138 - pipelines.code_change_analyzer - INFO - Analyzing commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:09:22,482 - pipelines.code_change_analyzer - INFO - No entities found for file testkitbackend/test_config.json (tried filename: test_config.json)
+2025-06-25 15:09:22,482 - pipelines.code_change_analyzer - INFO - Found 0 entities and 0 relationships for testkitbackend/test_config.json
+2025-06-25 15:09:22,615 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:09:22,615 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:09:22,615 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:09:22,615 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 15:09:22,616 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📝 Affected variables: 0
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 15:09:22,616 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 15:21:46,194 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 15:21:46,195 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 15:21:46,195 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 15:21:46,234 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 15:21:46,235 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/neo4j/neo4j-python-driver
+2025-06-25 15:21:46,235 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 15:21:46,235 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 15:21:46,817 - integrations.github_integration - INFO - Found latest commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:21:46,817 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: a346cad1
+2025-06-25 15:21:46,817 - pipelines.code_change_analyzer - INFO - Analyzing commit: a346cad1 - Merge pull request #1213 from robsdedude/testkit/skip-connection-acquisition-timeout-unification-tests
+
+TestKit: skip connection acquisition timeout unification tests for now
+2025-06-25 15:21:47,738 - pipelines.code_change_analyzer - INFO - No entities found for file testkitbackend/test_config.json (tried filename: test_config.json)
+2025-06-25 15:21:47,738 - pipelines.code_change_analyzer - INFO - Found 0 entities and 0 relationships for testkitbackend/test_config.json
+2025-06-25 15:21:48,098 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:21:48,098 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:21:48,099 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:21:48,099 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 15:21:48,099 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📝 Affected variables: 0
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 15:21:48,099 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 15:35:37,566 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 15:35:37,566 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 15:35:37,567 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 15:35:37,607 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 15:35:37,607 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/XCTianer/transformer-models.git
+2025-06-25 15:35:37,608 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 15:35:37,608 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 15:35:38,182 - integrations.github_integration - INFO - Found latest commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 15:35:38,182 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: ce31873a
+2025-06-25 15:35:38,182 - pipelines.code_change_analyzer - INFO - Analyzing commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 15:35:38,182 - pipelines.code_change_analyzer - INFO - Analyzing commit: ce31873a - Update GPT2 support file path handling
+2025-06-25 15:35:38,949 - pipelines.code_change_analyzer - INFO - Found 3 entities using path variation: getSupportFilePath.m
+2025-06-25 15:35:38,966 - pipelines.code_change_analyzer - INFO - Found 3 entities and 6 relationships for nj/transformer-models/+gpt2/+internal/getSupportFilePath.m
+2025-06-25 15:35:39,396 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: directory in getSupportFilePath.m
+2025-06-25 15:35:39,418 - pipelines.code_change_analyzer - INFO - Found 6 dependency chains for directory
+2025-06-25 15:35:39,418 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: destination in getSupportFilePath.m
+2025-06-25 15:35:39,439 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for destination
+2025-06-25 15:35:39,439 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: source in getSupportFilePath.m
+2025-06-25 15:35:39,460 - pipelines.code_change_analyzer - INFO - Found 5 dependency chains for source
+2025-06-25 15:35:39,461 - pipelines.code_change_analyzer - INFO - Total dependency chains found: 15
+2025-06-25 15:35:39,461 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:35:39,461 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:35:39,462 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:35:39,462 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 15:35:39,462 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📝 Affected variables: 3
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 15:35:39,462 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 15:59:21,538 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 15:59:21,538 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 15:59:21,538 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 15:59:21,573 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 15:59:21,573 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/XCTianer/transformer-models.git
+2025-06-25 15:59:21,573 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 15:59:21,574 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 15:59:23,049 - integrations.github_integration - INFO - Found latest commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 15:59:23,049 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: a2b3ad31
+2025-06-25 15:59:23,049 - pipelines.code_change_analyzer - INFO - Analyzing commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 15:59:23,049 - pipelines.code_change_analyzer - INFO - Analyzing commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 15:59:24,090 - pipelines.code_change_analyzer - INFO - Found 2 entities using path variation: model.m
+2025-06-25 15:59:24,105 - pipelines.code_change_analyzer - INFO - Found 2 entities and 10 relationships for nj/transformer-models/+gpt2/model.m
+2025-06-25 15:59:24,475 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: params in model.m
+2025-06-25 15:59:24,528 - pipelines.code_change_analyzer - INFO - Found 20 dependency chains for params
+2025-06-25 15:59:24,528 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: val in model.m
+2025-06-25 15:59:24,561 - pipelines.code_change_analyzer - INFO - Found 6 dependency chains for val
+2025-06-25 15:59:24,561 - pipelines.code_change_analyzer - INFO - Total dependency chains found: 18
+2025-06-25 15:59:24,561 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:59:24,562 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:59:24,562 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:59:24,562 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 15:59:24,563 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 🔧 Affected functions: 0
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📝 Affected variables: 2
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 📜 Affected scripts: 0
+2025-06-25 15:59:24,563 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results
+2025-06-25 16:40:23,628 - main_analyzer - INFO - Starting code change analysis...
+2025-06-25 16:40:23,629 - main_analyzer - INFO - 🔍 Analyzing only the latest commit
+2025-06-25 16:40:23,629 - main_analyzer - INFO - 🤖 LLM-enhanced analysis enabled
+2025-06-25 16:40:23,695 - pipelines.code_change_analyzer - WARNING - Failed to initialize LLM: Unknown scheme for proxy URL URL('socks://127.0.0.1:7891/')
+2025-06-25 16:40:23,695 - pipelines.code_change_analyzer - INFO - Starting analysis of repository: https://github.com/XCTianer/transformer-models.git
+2025-06-25 16:40:23,696 - integrations.github_integration - INFO - Proxies disabled to avoid SOCKS issues
+2025-06-25 16:40:23,696 - integrations.github_integration - WARNING - No GitHub token provided - using unauthenticated API calls (limited rate)
+2025-06-25 16:40:24,441 - integrations.github_integration - INFO - Found latest commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 16:40:24,441 - pipelines.code_change_analyzer - INFO - Analyzing only the latest commit: a2b3ad31
+2025-06-25 16:40:24,441 - pipelines.code_change_analyzer - INFO - Analyzing commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 16:40:24,441 - pipelines.code_change_analyzer - INFO - Analyzing commit: a2b3ad31 - Update GPT2 model implementation
+2025-06-25 16:40:25,215 - pipelines.code_change_analyzer - INFO - Found 21 entities using normalized path match for +gpt2/model.m
+2025-06-25 16:40:25,630 - pipelines.code_change_analyzer - INFO - Found 21 entities and 51 relationships for nj/transformer-models/+gpt2/model.m
+2025-06-25 16:40:26,037 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Function: gpt2.model in +gpt2/model.m
+2025-06-25 16:40:26,091 - pipelines.code_change_analyzer - INFO - Found 21 dependency chains for gpt2.model
+2025-06-25 16:40:26,091 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: X in +gpt2/model.m
+2025-06-25 16:40:26,181 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for X
+2025-06-25 16:40:26,181 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: pasts in +gpt2/model.m
+2025-06-25 16:40:26,198 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for pasts
+2025-06-25 16:40:26,198 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: parameters in +gpt2/model.m
+2025-06-25 16:40:26,213 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for parameters
+2025-06-25 16:40:26,213 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: hyperparameters in +gpt2/model.m
+2025-06-25 16:40:26,229 - pipelines.code_change_analyzer - INFO - Found 3 dependency chains for hyperparameters
+2025-06-25 16:40:26,229 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: weights in +gpt2/model.m
+2025-06-25 16:40:26,246 - pipelines.code_change_analyzer - INFO - Found 4 dependency chains for weights
+2025-06-25 16:40:26,246 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: seqLen in +gpt2/model.m
+2025-06-25 16:40:26,261 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for seqLen
+2025-06-25 16:40:26,261 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: h in +gpt2/model.m
+2025-06-25 16:40:26,278 - pipelines.code_change_analyzer - INFO - Found 4 dependency chains for h
+2025-06-25 16:40:26,278 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: positionOffset in +gpt2/model.m
+2025-06-25 16:40:26,294 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for positionOffset
+2025-06-25 16:40:26,295 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: presents in +gpt2/model.m
+2025-06-25 16:40:26,340 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for presents
+2025-06-25 16:40:26,340 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: layerName in +gpt2/model.m
+2025-06-25 16:40:26,368 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for layerName
+2025-06-25 16:40:26,368 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: logits in +gpt2/model.m
+2025-06-25 16:40:26,384 - pipelines.code_change_analyzer - INFO - Found 2 dependency chains for logits
+2025-06-25 16:40:26,384 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: Hyperparameters in +gpt2/model.m
+2025-06-25 16:40:26,411 - pipelines.code_change_analyzer - INFO - No dependency chains found for Hyperparameters
+2025-06-25 16:40:26,411 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: Weights in +gpt2/model.m
+2025-06-25 16:40:26,433 - pipelines.code_change_analyzer - INFO - No dependency chains found for Weights
+2025-06-25 16:40:26,433 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: NumLayers in +gpt2/model.m
+2025-06-25 16:40:26,465 - pipelines.code_change_analyzer - INFO - No dependency chains found for NumLayers
+2025-06-25 16:40:26,466 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: present in +gpt2/model.m
+2025-06-25 16:40:26,479 - pipelines.code_change_analyzer - INFO - No dependency chains found for present
+2025-06-25 16:40:26,479 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: gpt2 in +gpt2/model.m
+2025-06-25 16:40:26,492 - pipelines.code_change_analyzer - INFO - No dependency chains found for gpt2
+2025-06-25 16:40:26,492 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Variable: layer in +gpt2/model.m
+2025-06-25 16:40:26,506 - pipelines.code_change_analyzer - INFO - No dependency chains found for layer
+2025-06-25 16:40:26,506 - pipelines.code_change_analyzer - INFO - Analyzing dependency chains for Script: model in +gpt2/model.m
+2025-06-25 16:40:26,537 - pipelines.code_change_analyzer - INFO - Found 20 dependency chains for model
+2025-06-25 16:40:26,538 - pipelines.code_change_analyzer - INFO - Total dependency chains found: 60
+2025-06-25 16:40:26,539 - tools.report_generator - INFO - Analysis report generated: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 16:40:26,539 - tools.report_generator - INFO - Queries file generated: analysis_output/影响链路查询语句.cypher
+2025-06-25 16:40:26,542 - tools.report_generator - INFO - Neo4j links file generated: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 16:40:26,542 - pipelines.code_change_analyzer - INFO - Analysis completed successfully
+2025-06-25 16:40:26,544 - main_analyzer - INFO - ✅ Analysis completed successfully!
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📁 Output files generated in: analysis_output
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📄 analysis_report: analysis_output/代码变更记录影响范围分析报告.md
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📄 queries_file: analysis_output/影响链路查询语句.cypher
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📄 neo4j_links: analysis_output/带查询语句的neo4j链接.md
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 
+=== Analysis Summary ===
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📊 Total commits analyzed: 1
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📄 Total files changed: 1
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 🔧 Affected functions: 1
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📝 Affected variables: 17
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 📜 Affected scripts: 1
+2025-06-25 16:40:26,544 - main_analyzer - INFO - 🤖 LLM-enhanced analysis included in results

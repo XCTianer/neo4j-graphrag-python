@@ -152,6 +152,9 @@ class GitHubIntegration:
                 'status': f.get('status'),
                 'file_path': f.get('filename'),
                 'commit_hash': commit_hash,
+                'additions': f.get('additions', 0),
+                'deletions': f.get('deletions', 0),
+                'changes': f.get('changes', 0),
                 'patch': f.get('patch', None)
             })
         return changes

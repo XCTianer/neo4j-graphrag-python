@@ -228,7 +228,37 @@ class ReportGenerator:
         for change in changes:
             content += f"- **{change.get('status', 'N/A')}**: {change.get('file_path', 'N/A')}\n"
         
-        content += "\n#### 影响分析\n\n"
+        content += "\n#### 变更记录详情\n\n"
+        
+        # 添加变更记录详情
+        for change in changes:
+            file_path = change.get('file_path', 'N/A')
+            status = change.get('status', 'N/A')
+            additions = change.get('additions', 0)
+            deletions = change.get('deletions', 0)
+            changes_count = change.get('changes', 0)
+            
+            content += f"""**文件**: {file_path}
+- **状态**: {status}
+- **新增行数**: {additions}
+- **删除行数**: {deletions}
+- **变更行数**: {changes_count}
+
+"""
+            
+            # 如果有变更内容，显示变更内容
+            if 'patch' in change and change['patch']:
+                content += "**变更内容**:\n"
+                content += "```diff\n"
+                # 显示完整的patch内容，但限制在合理长度内
+                patch_content = change['patch']
+                if len(patch_content) > 2000:
+                    content += patch_content[:2000] + "\n... (内容过长，已截断)"
+                else:
+                    content += patch_content
+                content += "\n```\n\n"
+        
+        content += "#### 影响分析\n\n"
         
         # Add affected functions
         affected_functions = impact.get('affected_functions', [])
@@ -253,6 +283,42 @@ class ReportGenerator:
             for script in affected_scripts:
                 content += f"- {script.get('name', 'N/A')} (文件: {script.get('file_path', 'N/A')})\n"
             content += "\n"
+        
+        # 添加影响链路信息
+        dependency_chains = commit_detail.get('dependency_chains', [])
+        if dependency_chains:
+            content += "#### 影响链路\n\n"
+            content += f"**发现 {len(dependency_chains)} 条影响链路**\n\n"
+            
+            # 按严重程度分组
+            high_severity = [chain for chain in dependency_chains if chain.get('severity') == 'HIGH']
+            medium_severity = [chain for chain in dependency_chains if chain.get('severity') == 'MEDIUM']
+            low_severity = [chain for chain in dependency_chains if chain.get('severity') == 'LOW']
+            
+            content += f"- 🔴 高风险链路: {len(high_severity)} 条\n"
+            content += f"- 🟡 中风险链路: {len(medium_severity)} 条\n"
+            content += f"- 🟢 低风险链路: {len(low_severity)} 条\n\n"
+            
+            # 显示前5条最重要的链路
+            content += "**重要影响链路**:\n"
+            for i, chain in enumerate(dependency_chains[:5], 1):
+                severity_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}.get(chain.get('severity'), "⚪")
+                direction_icon = {"downstream": "⬇️", "upstream": "⬆️"}.get(chain.get('direction'), "↔️")
+                
+                content += f"{i}. {severity_icon} {direction_icon} {chain.get('source_entity', 'unknown')} → {chain.get('target_entity', 'unknown')}\n"
+                content += f"   链路类型: {chain.get('chain_type', 'unknown')}\n"
+                content += f"   路径长度: {chain.get('path_length', 0)}\n"
+                
+                # 显示路径中的关键节点
+                path_nodes = chain.get('path_nodes', [])
+                if path_nodes:
+                    node_names = [node.get('name', 'unknown') for node in path_nodes[:5]]
+                    content += f"   路径节点: {' → '.join(node_names)}"
+                    if len(path_nodes) > 5:
+                        content += f" ... 还有 {len(path_nodes) - 5} 个节点"
+                    content += "\n"
+                
+                content += "\n"
         
         return content
     
@@ -285,7 +351,7 @@ class ReportGenerator:
     
     def _generate_recommendations_section(self, analysis: Dict) -> str:
         """Generate recommendations section."""
-        return """## 建议和后续行动
+        return f"""## 建议和后续行动
 
 ### 代码审查建议
 
@@ -373,54 +439,89 @@ class ReportGenerator:
                 # 计算合理的路径长度上限（基于实际路径长度，但不超过20）
                 max_path_length = min(len(path_nodes) + 5, 20)
                 
-                content += f"""-- 1. 查询完整链路路径
+                content += f"""-- 1. 查询完整链路路径（图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
-RETURN path, length(path) as path_length;
+RETURN path;
 
--- 2. 查询链路上的所有节点（按类型分组）
+-- 2. 查询链路上的所有节点（图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
-WITH nodes(path) as path_nodes
-UNWIND path_nodes as node
-RETURN labels(node)[0] as node_type, node.name as node_name, node.file_path as file_path
-ORDER BY node_type, node_name;
+RETURN path;
 
--- 3. 查询链路上的脚本组件
+-- 3. 查询链路上的脚本组件（完全展开图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
 WHERE 'Script' IN labels(node)
-RETURN node.name as script_name, node.file_path as file_path, properties(node) as properties;
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
 
--- 4. 查询链路上的函数组件
+-- 4. 查询链路上的函数组件（完全展开图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
 WHERE 'Function' IN labels(node)
-RETURN node.name as function_name, node.file_path as file_path, node.line_range as line_range;
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
 
--- 5. 查询链路上的变量组件
+-- 5. 查询链路上的变量组件（完全展开图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
 WITH nodes(path) as path_nodes
 UNWIND path_nodes as node
 WHERE 'Variable' IN labels(node)
-RETURN node.name as variable_name, node.file_path as file_path, node.line_range as line_range;
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
 
--- 6. 查询链路上的所有关系
+-- 6. 查询链路上的所有关系（完全展开图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
-RETURN relationships(path) as path_relationships;
+WITH nodes(path) as path_nodes
+UNWIND path_nodes as node
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
 
--- 7. 查询链路关系详情
+-- 7. 查询链路关系详情（完全展开图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
-WITH relationships(path) as path_rels
+WITH nodes(path) as path_nodes
+UNWIND path_nodes as node
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
+
+-- 8. 查询链路完整图形（包含所有节点和关系）
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
+WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
+WITH nodes(path) as path_nodes, relationships(path) as path_rels
+UNWIND path_nodes as node
 UNWIND path_rels as rel
-RETURN type(rel) as relationship_type, startNode(rel).name as source_name, endNode(rel).name as target_name;
+RETURN startNode(rel) as source, rel as relationship, endNode(rel) as target;
+
+-- 9. 查询链路节点的完整关系网络（推荐使用）
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
+WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
+WITH nodes(path) as path_nodes
+UNWIND path_nodes as node
+MATCH (n)-[r]-(m)
+WHERE n = node
+RETURN n, r, m;
+
+-- 10. 查询链路节点的2跳关系网络（最完整显示）
+MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
+WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
+WITH nodes(path) as path_nodes
+UNWIND path_nodes as node
+MATCH (n)-[r1]-(m1)-[r2]-(m2)
+WHERE n = node
+RETURN n, r1, m1, r2, m2;
 
 """
             
@@ -450,10 +551,10 @@ RETURN type(rel) as relationship_type, startNode(rel).name as source_name, endNo
                     # 计算合理的路径长度上限（基于实际路径长度，但不超过20）
                     max_path_length = min(len(path_nodes) + 5, 20)
                     
-                    content += f"""-- 查询链路路径
+                    content += f"""-- 查询链路路径（图形显示）
 MATCH path = shortestPath((source)-[*1..{max_path_length}]->(target))
 WHERE elementId(source) = '{source_node_id}' AND elementId(target) = '{target_node_id}'
-RETURN path, length(path) as path_length;
+RETURN path;
 
 """
                 
@@ -461,36 +562,91 @@ RETURN path, length(path) as path_length;
         
         # 添加通用的影响链查询语句
         content += """-- ========================================
--- 通用影响链查询语句
+-- 通用影响链查询语句（图形显示）
 -- ========================================
 
--- 查询所有影响链
-MATCH (source)-[r*1..5]->(target)
+-- 查询所有影响链（图形显示）
+MATCH path = (source)-[r*1..5]->(target)
 WHERE source <> target
-RETURN source.name as source_name, target.name as target_name, length(r) as path_length
-ORDER BY path_length DESC
-LIMIT 20;
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 10;
 
--- 查询包含脚本的影响链
+-- 查询包含脚本的影响链（图形显示）
 MATCH path = (source)-[r*1..5]->(target)
 WHERE source <> target AND ANY(node IN nodes(path) WHERE 'Script' IN labels(node))
-RETURN source.name as source_name, target.name as target_name, length(r) as path_length
-ORDER BY path_length DESC
-LIMIT 10;
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 5;
 
--- 查询包含函数的影响链
+-- 查询包含函数的影响链（图形显示）
 MATCH path = (source)-[r*1..5]->(target)
 WHERE source <> target AND ANY(node IN nodes(path) WHERE 'Function' IN labels(node))
-RETURN source.name as source_name, target.name as target_name, length(r) as path_length
-ORDER BY path_length DESC
-LIMIT 10;
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 5;
 
--- 查询包含变量的影响链
+-- 查询包含变量的影响链（图形显示）
 MATCH path = (source)-[r*1..5]->(target)
 WHERE source <> target AND ANY(node IN nodes(path) WHERE 'Variable' IN labels(node))
-RETURN source.name as source_name, target.name as target_name, length(r) as path_length
-ORDER BY path_length DESC
-LIMIT 10;
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 5;
+
+-- 查询函数调用链（图形显示）
+MATCH path = (source:Function)-[r:CALLS*1..3]->(target)
+WHERE source <> target
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 5;
+
+-- 查询变量依赖链（图形显示）
+MATCH path = (source)-[r:DEFINES|USES*1..3]->(target)
+WHERE source <> target
+RETURN path
+ORDER BY length(path) DESC
+LIMIT 5;
+
+-- 查询特定文件的影响（图形显示）
+MATCH (n)-[r]-(m)
+WHERE n.file_path CONTAINS 'getSupportFilePath.m' OR m.file_path CONTAINS 'getSupportFilePath.m'
+RETURN n, r, m;
+
+-- 查询特定文件节点的完整关系网络（推荐使用）
+MATCH (n)
+WHERE n.file_path CONTAINS 'getSupportFilePath.m'
+MATCH (n)-[r]-(m)
+RETURN n, r, m;
+
+-- 查询所有Script节点的完整关系网络
+MATCH (n:Script)-[r]-(m)
+RETURN n, r, m
+LIMIT 50;
+
+-- 查询所有Function节点的完整关系网络
+MATCH (n:Function)-[r]-(m)
+RETURN n, r, m
+LIMIT 50;
+
+-- 查询所有Variable节点的完整关系网络（限制数量）
+MATCH (n:Variable)-[r]-(m)
+RETURN n, r, m
+LIMIT 30;
+
+-- 查询CALLS关系的完整网络
+MATCH (n)-[r:CALLS]->(m)
+RETURN n, r, m
+LIMIT 30;
+
+-- 查询DEFINES关系的完整网络
+MATCH (n)-[r:DEFINES]->(m)
+RETURN n, r, m
+LIMIT 30;
+
+-- 查询USES关系的完整网络
+MATCH (n)-[r:USES]->(m)
+RETURN n, r, m
+LIMIT 30;
 
 """
         
