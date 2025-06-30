@@ -1,0 +1,19 @@
+{
+    "mcpServers": {
+        "code-change-impact": {
+            "command": "/home/kotei/work/neo4j-graphrag-python/mcp_plugin/start_for_cursor.sh",
+            "description": "Code Change Impact Analysis using Neo4j GraphRAG",
+            "capabilities": {
+                "tools": [
+                    "analyze_code_changes",
+                    "get_impact_chains", 
+                    "get_file_impact",
+                    "get_commit_analysis",
+                    "get_neo4j_queries",
+                    "get_analysis_config",
+                    "update_config"
+                ]
+            }
+        }
+    }
+} 

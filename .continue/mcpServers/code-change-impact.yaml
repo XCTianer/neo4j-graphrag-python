@@ -1,0 +1,13 @@
+name: Code Change Impact Analysis MCP Server
+version: 1.0.0
+schema: v1
+mcpServers:
+  - name: code-change-impact
+    type: stdio
+    command: /home/kotei/miniconda3/envs/sunny/bin/python
+    args:
+      - /home/kotei/work/neo4j-graphrag-python/mcp_plugin/start_for_continue_final.py
+    env:
+      PYTHONPATH: /home/kotei/work/neo4j-graphrag-python:/home/kotei/work/neo4j-graphrag-python/src
+      PATH: /home/kotei/miniconda3/envs/sunny/bin:/usr/local/bin:/usr/bin:/bin
+      CONDA_DEFAULT_ENV: sunny 

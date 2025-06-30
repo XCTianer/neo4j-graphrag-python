@@ -1,0 +1,15 @@
+{
+    "window.commandCenter": true,
+    "cursor.general.disableHttp2": true,
+    "terminal.integrated.enableMultiLinePasteWarning": false,
+    "mcp.servers": {
+        "code-change-impact": {
+            "command": "python",
+            "args": ["/home/kotei/work/neo4j-graphrag-python/mcp_plugin/server.py"],
+            "env": {
+                "PYTHONPATH": "/home/kotei/work/neo4j-graphrag-python",
+                "CONDA_DEFAULT_ENV": "sunny"
+            }
+        }
+    }
+} 
