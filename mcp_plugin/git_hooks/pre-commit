@@ -1,0 +1,152 @@
+#!/bin/bash
+# Git pre-commit hook for MCP analysis
+# This hook runs before each commit to analyze code changes
+
+set -e
+
+# Configuration
+MCP_PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$MCP_PLUGIN_DIR/.." && pwd)"
+CONDA_ENV="sunny"
+
+echo "🔍 Running MCP pre-commit analysis..."
+
+# Function to activate conda environment
+activate_conda() {
+    if command -v conda &> /dev/null; then
+        source ~/miniconda3/etc/profile.d/conda.sh
+        conda activate "$CONDA_ENV"
+    else
+        echo "❌ Error: conda not found"
+        exit 1
+    fi
+}
+
+# Function to run MCP analysis
+run_mcp_analysis() {
+    local commit_hash="$1"
+    
+    echo "📊 Analyzing commit: $commit_hash"
+    
+    # Activate conda and run analysis
+    source ~/miniconda3/etc/profile.d/conda.sh
+    conda activate "$CONDA_ENV"
+    cd "$MCP_PLUGIN_DIR"
+    
+    # Run analysis
+    result=$(python codex_integration.py analyze_code_changes "{\"commit_hash\": \"$commit_hash\"}" 2>/dev/null || echo "{\"error\": \"Analysis failed\"}")
+    
+    # Check if analysis was successful
+    if echo "$result" | grep -q '"success": true'; then
+        echo "✅ MCP analysis completed successfully"
+        
+        # Extract key metrics
+        affected_files=$(echo "$result" | grep -o '"affected_files": \[[^]]*\]' | head -1)
+        impact_chains=$(echo "$result" | grep -o '"impact_chains": \[[^]]*\]' | head -1)
+        
+        echo "📁 Affected files: $affected_files"
+        echo "🔗 Impact chains: $impact_chains"
+        
+        # Check for high impact changes
+        if echo "$result" | grep -q '"high_impact": true'; then
+            echo "⚠️  WARNING: High impact changes detected!"
+            echo "   Consider additional testing before committing."
+        fi
+        
+    else
+        echo "❌ MCP analysis failed: $(echo "$result" | grep -o '"error": "[^"]*"' | head -1)"
+        echo "   Continuing with commit..."
+    fi
+}
+
+# Function to analyze staged files
+analyze_staged_files() {
+    echo "📋 Analyzing staged files..."
+    
+    # Get list of staged files
+    staged_files=$(git diff --cached --name-only)
+    
+    if [ -z "$staged_files" ]; then
+        echo "ℹ️  No files staged for commit"
+        return 0
+    fi
+    
+    # Activate conda
+    activate_conda
+    cd "$MCP_PLUGIN_DIR"
+    
+    # Analyze each staged file
+    for file in $staged_files; do
+        if [ -f "$PROJECT_ROOT/$file" ]; then
+            echo "🔍 Analyzing: $file"
+            
+            # Run file impact analysis
+            result=$(python codex_integration.py get_file_impact "{\"file_path\": \"$file\"}" 2>/dev/null || echo "{\"error\": \"Analysis failed\"}")
+            
+            if echo "$result" | grep -q '"success": true'; then
+                echo "   ✅ Analysis completed"
+            else
+                echo "   ⚠️  Analysis failed, continuing..."
+            fi
+        fi
+    done
+}
+
+# Function to generate impact summary
+generate_impact_summary() {
+    echo "📝 Generating impact summary..."
+    
+    # Create impact summary file
+    summary_file="$PROJECT_ROOT/.mcp_commit_summary.md"
+    
+    cat > "$summary_file" << EOF
+# MCP Pre-commit Analysis Summary
+
+**Commit Time**: $(date)
+**Branch**: $(git branch --show-current)
+**Commit Hash**: $(git rev-parse HEAD)
+
+## Staged Files
+$(git diff --cached --name-only | sed 's/^/- /')
+
+## Analysis Results
+- Analysis completed: $(date)
+- MCP tools used: analyze_code_changes, get_file_impact
+- Environment: $CONDA_ENV
+
+## Recommendations
+- Review the analysis results before pushing
+- Consider running full impact analysis for high-risk changes
+- Use \`./mcp_plugin/codex_wrapper.sh\` for detailed analysis
+
+EOF
+    
+    echo "📄 Impact summary saved to: $summary_file"
+}
+
+# Main execution
+main() {
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "❌ Not in a git repository"
+        exit 1
+    fi
+    
+    # Check if MCP plugin directory exists
+    if [ ! -d "$MCP_PLUGIN_DIR" ]; then
+        echo "❌ MCP plugin directory not found: $MCP_PLUGIN_DIR"
+        exit 1
+    fi
+    
+    # Analyze staged files
+    analyze_staged_files
+    
+    # Generate impact summary
+    generate_impact_summary
+    
+    echo "✅ Pre-commit MCP analysis completed"
+    echo "💡 Tip: Use 'git commit --no-verify' to skip this hook"
+}
+
+# Run main function
+main "$@" 

@@ -1,0 +1,3 @@
+2025-07-01 16:13:01,030 - INFO - Command line call: /home/kotei/work/neo4j-graphrag-python/mcp_plugin/codex_integration.py --help
+2025-07-01 16:13:01,030 - INFO - Received MCP tool call: --help with params: {}
+2025-07-01 16:13:02,288 - INFO - MCP Tool Call: {"timestamp": "2025-07-01T16:13:02.288901", "tool_name": "--help", "parameters": {}, "result": {"error": "Unknown tool: --help", "success": false}, "duration_seconds": 1.25814, "success": false}

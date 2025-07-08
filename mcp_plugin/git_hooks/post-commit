@@ -1,0 +1,228 @@
+#!/bin/bash
+# Git post-commit hook for MCP analysis
+# This hook runs after each commit to generate detailed analysis reports
+
+set -e
+
+# Configuration
+MCP_PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$MCP_PLUGIN_DIR/.." && pwd)"
+CONDA_ENV="sunny"
+
+echo "📊 Running MCP post-commit analysis..."
+
+# Function to activate conda environment
+activate_conda() {
+    if command -v conda &> /dev/null; then
+        source ~/miniconda3/etc/profile.d/conda.sh
+        conda activate "$CONDA_ENV"
+    else
+        echo "❌ Error: conda not found"
+        exit 1
+    fi
+}
+
+# Function to get commit information
+get_commit_info() {
+    local commit_hash="$1"
+    
+    echo "📋 Commit Information:"
+    echo "   Hash: $commit_hash"
+    echo "   Author: $(git log -1 --pretty=format:'%an <%ae>' $commit_hash)"
+    echo "   Date: $(git log -1 --pretty=format:'%ad' $commit_hash)"
+    echo "   Message: $(git log -1 --pretty=format:'%s' $commit_hash)"
+    echo ""
+}
+
+# Function to analyze commit
+analyze_commit() {
+    local commit_hash="$1"
+    
+    echo "🔍 Analyzing commit: $commit_hash"
+    
+    # Activate conda and run analysis
+    activate_conda
+    cd "$MCP_PLUGIN_DIR"
+    
+    # Run comprehensive analysis
+    echo "   Running code change analysis..."
+    change_analysis=$(python codex_integration.py analyze_code_changes "{\"commit_hash\": \"$commit_hash\"}" 2>/dev/null || echo "{\"error\": \"Change analysis failed\"}")
+    
+    echo "   Running commit analysis..."
+    commit_analysis=$(python codex_integration.py get_commit_analysis "{\"commit_hash\": \"$commit_hash\"}" 2>/dev/null || echo "{\"error\": \"Commit analysis failed\"}")
+    
+    # Get changed files
+    changed_files=$(git show --name-only $commit_hash | tail -n +2)
+    
+    # Analyze each changed file
+    file_analyses=""
+    for file in $changed_files; do
+        if [ -f "$PROJECT_ROOT/$file" ]; then
+            echo "   Analyzing file: $file"
+            file_analysis=$(python codex_integration.py get_file_impact "{\"file_path\": \"$file\"}" 2>/dev/null || echo "{\"error\": \"File analysis failed\"}")
+            file_analyses="$file_analyses\n### $file\n\`\`\`json\n$file_analysis\n\`\`\`"
+        fi
+    done
+    
+    return 0
+}
+
+# Function to generate detailed report
+generate_detailed_report() {
+    local commit_hash="$1"
+    local change_analysis="$2"
+    local commit_analysis="$3"
+    local file_analyses="$4"
+    
+    echo "📝 Generating detailed analysis report..."
+    
+    # Create report directory
+    report_dir="$PROJECT_ROOT/analysis_reports"
+    mkdir -p "$report_dir"
+    
+    # Create report file
+    report_file="$report_dir/commit_${commit_hash:0:8}_$(date +%Y%m%d_%H%M%S).md"
+    
+    cat > "$report_file" << EOF
+# MCP Post-commit Analysis Report
+
+## Commit Information
+- **Hash**: \`$commit_hash\`
+- **Author**: $(git log -1 --pretty=format:'%an <%ae>' $commit_hash)
+- **Date**: $(git log -1 --pretty=format:'%ad' $commit_hash)
+- **Message**: $(git log -1 --pretty=format:'%s' $commit_hash)
+- **Branch**: $(git branch --show-current)
+
+## Changed Files
+$(git show --name-only $commit_hash | tail -n +2 | sed 's/^/- /')
+
+## Analysis Results
+
+### Code Change Analysis
+\`\`\`json
+$change_analysis
+\`\`\`
+
+### Commit Analysis
+\`\`\`json
+$commit_analysis
+\`\`\`
+
+### File Impact Analysis
+$file_analyses
+
+## Summary
+- **Analysis Time**: $(date)
+- **MCP Tools Used**: analyze_code_changes, get_commit_analysis, get_file_impact
+- **Environment**: $CONDA_ENV
+- **Report Generated**: $(date)
+
+## Recommendations
+1. Review the impact analysis results
+2. Consider additional testing for high-impact changes
+3. Update documentation if necessary
+4. Monitor for any issues in related components
+
+## Next Steps
+- Use \`./mcp_plugin/codex_wrapper.sh\` for additional analysis
+- Run \`python mcp_plugin/codex_automation.py --action report\` for comprehensive report
+- Consider running impact chain analysis for critical files
+
+EOF
+    
+    echo "📄 Detailed report saved to: $report_file"
+    
+    # Create a symlink to the latest report
+    latest_link="$report_dir/latest_commit_analysis.md"
+    ln -sf "$(basename "$report_file")" "$latest_link"
+    
+    echo "🔗 Latest report link: $latest_link"
+}
+
+# Function to update project documentation
+update_documentation() {
+    local commit_hash="$1"
+    
+    echo "📚 Updating project documentation..."
+    
+    # Update README with latest analysis info
+    readme_file="$PROJECT_ROOT/README.md"
+    if [ -f "$readme_file" ]; then
+        # Add analysis section if it doesn't exist
+        if ! grep -q "## MCP Analysis" "$readme_file"; then
+            cat >> "$readme_file" << EOF
+
+## MCP Analysis
+
+This project uses Neo4j GraphRAG MCP tools for code change impact analysis.
+
+### Latest Analysis
+- **Last Commit**: \`$commit_hash\`
+- **Analysis Time**: $(date)
+- **Tools**: analyze_code_changes, get_file_impact, get_impact_chains
+
+### Quick Analysis Commands
+\`\`\`bash
+# Analyze recent changes
+./mcp_plugin/codex_wrapper.sh analyze_code_changes \$(git rev-parse HEAD)
+
+# Get file impact
+./mcp_plugin/codex_wrapper.sh get_file_impact "src/main.py"
+
+# Generate comprehensive report
+python mcp_plugin/codex_automation.py --action report
+\`\`\`
+
+EOF
+        fi
+    fi
+}
+
+# Function to send notifications (optional)
+send_notifications() {
+    local commit_hash="$1"
+    local report_file="$2"
+    
+    echo "📢 Sending analysis notifications..."
+    
+    # Check if this is a high-impact commit
+    if [ -f "$report_file" ] && grep -q '"high_impact": true' "$report_file"; then
+        echo "⚠️  High-impact commit detected! Consider notifying team members."
+        
+        # You can add notification logic here (email, Slack, etc.)
+        # Example: curl -X POST -H 'Content-type: application/json' --data '{"text":"High-impact commit detected"}' $SLACK_WEBHOOK_URL
+    fi
+}
+
+# Main execution
+main() {
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "❌ Not in a git repository"
+        exit 1
+    fi
+    
+    # Get the current commit hash
+    commit_hash=$(git rev-parse HEAD)
+    
+    # Get commit information
+    get_commit_info "$commit_hash"
+    
+    # Analyze the commit
+    analyze_commit "$commit_hash"
+    
+    # Generate detailed report
+    generate_detailed_report "$commit_hash" "$change_analysis" "$commit_analysis" "$file_analyses"
+    
+    # Update documentation
+    update_documentation "$commit_hash"
+    
+    # Send notifications
+    send_notifications "$commit_hash" "$report_file"
+    
+    echo "✅ Post-commit MCP analysis completed"
+    echo "📊 Reports available in: $PROJECT_ROOT/analysis_reports/"
+}
+
+# Run main function
+main "$@" 

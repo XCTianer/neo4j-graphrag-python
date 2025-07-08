@@ -12,13 +12,13 @@ from pathlib import Path
 # Add the parent directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from plugin import plugin
+from plugin import OptimizedCodeChangeImpactPlugin
 
 class MCPServer:
     """MCP Server implementation for Code Change Impact Analysis"""
     
     def __init__(self):
-        self.plugin = plugin
+        self.plugin = OptimizedCodeChangeImpactPlugin()
         self.logger = logging.getLogger(__name__)
         self.initialized = False
     
@@ -26,10 +26,15 @@ class MCPServer:
         """Handle initialize request"""
         self.logger.info("Handling initialize request")
         
+        # Ensure id is not null
+        request_id = request.get('id')
+        if request_id is None:
+            request_id = 1  # Default id if not provided
+        
         # Send initialize response
         response = {
             "jsonrpc": "2.0",
-            "id": request.get('id'),
+            "id": request_id,
             "result": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {
@@ -69,6 +74,9 @@ class MCPServer:
             
             # Check if server is initialized
             if not self.initialized and method != 'initialize':
+                # Ensure id is not null
+                if request_id is None:
+                    request_id = 1  # Default id if not provided
                 return {
                     "jsonrpc": "2.0",
                     "id": request_id,
@@ -79,7 +87,7 @@ class MCPServer:
                 }
             
             # Handle initialized notification
-            if method == 'initialized':
+            if method == 'notifications/initialized':
                 await self.handle_initialized(request)
                 return None  # 不返回响应，initialized是通知
             
@@ -206,6 +214,10 @@ class MCPServer:
             else:
                 result = {"error": f"Unknown method: {method}"}
             
+            # Ensure id is not null
+            if request_id is None:
+                request_id = 1  # Default id if not provided
+            
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
@@ -214,9 +226,14 @@ class MCPServer:
             
         except Exception as e:
             self.logger.error(f"Error handling request: {e}", exc_info=True)
+            # Ensure id is not null
+            error_id = request.get('id')
+            if error_id is None:
+                error_id = 1  # Default id if not provided
+            
             return {
                 "jsonrpc": "2.0",
-                "id": request.get('id'),
+                "id": error_id,
                 "error": {
                     "code": -32603,
                     "message": f"Internal error: {str(e)}"
@@ -281,7 +298,7 @@ class MCPServer:
                     self.logger.error(f"Invalid JSON: {e}")
                     error_response = {
                         "jsonrpc": "2.0",
-                        "id": None,
+                        "id": 1,  # Use default id for parse errors
                         "error": {
                             "code": -32700,
                             "message": f"Parse error: {str(e)}"
@@ -302,6 +319,10 @@ class MCPServer:
 
 async def main():
     """Main entry point"""
+    # Set MCP server mode environment variable
+    import os
+    os.environ['MCP_SERVER_MODE'] = 'true'
+    
     server = MCPServer()
     await server.run_server()
 

@@ -16,14 +16,28 @@ from pipelines.code_change_analyzer import CodeChangeAnalyzer
 from config import get_config
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('code_change_analysis.log'),
-        logging.StreamHandler()
-    ]
-)
+# Check if running as MCP server (disable console output)
+is_mcp_server = os.environ.get('MCP_SERVER_MODE', 'false').lower() == 'true'
+
+if is_mcp_server:
+    # When running as MCP server, only log to file to avoid breaking JSON protocol
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('code_change_analysis.log')
+        ]
+    )
+else:
+    # Normal mode with console output
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('code_change_analysis.log'),
+            logging.StreamHandler()
+        ]
+    )
 
 logger = logging.getLogger(__name__)
 

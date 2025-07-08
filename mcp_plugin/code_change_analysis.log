@@ -1,0 +1,8 @@
+2025-07-01 16:13:02,288 - mcp_tool_calls - INFO - MCP Tool Call: {"timestamp": "2025-07-01T16:13:02.288901", "tool_name": "--help", "parameters": {}, "result": {"error": "Unknown tool: --help", "success": false}, "duration_seconds": 1.25814, "success": false}
+2025-07-01 16:25:14,845 - __main__ - INFO - Received request: initialize
+2025-07-01 16:25:14,845 - __main__ - INFO - Initializing MCP server...
+2025-07-01 16:25:14,845 - __main__ - INFO - Received request: tools/list
+2025-07-01 16:25:14,846 - __main__ - INFO - Received request: tools/call
+2025-07-01 16:25:14,846 - __main__ - INFO - Calling tool: get_analysis_config with arguments: {}
+2025-07-01 16:25:14,846 - __main__ - INFO - Tool get_analysis_config completed successfully
+2025-07-07 09:05:26,730 - __main__ - INFO - Starting MCP server...
