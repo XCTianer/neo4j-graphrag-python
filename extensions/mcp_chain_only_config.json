@@ -1,0 +1,99 @@
+{
+  "mcpServers": {
+    "chain-only-analyzer": {
+      "command": "python3",
+      "args": ["/home/kotei/work/neo4j-graphrag-python/extensions/mcp_chain_only_server.py"],
+      "env": {
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USERNAME": "neo4j",
+        "NEO4J_PASSWORD": "password"
+      }
+    }
+  },
+  "serverInfo": {
+    "name": "mcp-chain-only-server",
+    "version": "1.0.0",
+    "description": "极简影响链路分析MCP工具",
+    "capabilities": {
+      "tools": {
+        "chain_only_analyze": {
+          "name": "chain_only_analyze",
+          "description": "极简代码变更影响链路分析工具。输入为变更的文件、变量、函数等信息，工具会在Neo4j代码知识图谱中检索所有直接受影响的代码实体，返回最简洁的影响链路，不包含任何汇总、统计或其他额外信息。适用于需要快速获取变更影响链路的场景。",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "modified_files": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "修改的文件路径列表"
+              },
+              "changed_variables": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "变更的变量名称列表"
+              },
+              "changed_functions": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "变更的函数名称列表"
+              }
+            },
+            "required": []
+          }
+        }
+      }
+    }
+  },
+  "usage": {
+    "description": "使用此MCP服务进行极简的代码变更影响链路分析",
+    "examples": [
+      {
+        "name": "分析函数变更影响",
+        "input": {
+          "changed_functions": ["process_data", "validate_input"]
+        },
+        "description": "分析指定函数变更的影响链路"
+      },
+      {
+        "name": "分析变量变更影响",
+        "input": {
+          "changed_variables": ["config", "data"]
+        },
+        "description": "分析指定变量变更的影响链路"
+      },
+      {
+        "name": "分析文件变更影响",
+        "input": {
+          "modified_files": ["src/main.m", "src/utils.m"]
+        },
+        "description": "分析指定文件变更的影响链路"
+      },
+      {
+        "name": "综合分析",
+        "input": {
+          "modified_files": ["src/main.m"],
+          "changed_variables": ["config"],
+          "changed_functions": ["process_data"]
+        },
+        "description": "综合分析文件、变量、函数变更的影响链路"
+      }
+    ]
+  },
+  "output_format": {
+    "description": "输出最简洁的影响链路JSON格式",
+    "example": [
+      {
+        "function": "process_data",
+        "affected": ["main_function", "data_processor"]
+      },
+      {
+        "variable": "config",
+        "affected": ["Function:setup", "Script:init"]
+      },
+      {
+        "file": "src/main.m",
+        "affected": ["Function:main", "Variable:global_config"]
+      }
+    ]
+  }
+} 
